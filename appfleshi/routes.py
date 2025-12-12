@@ -38,7 +38,7 @@ def profile(user_id):
             secure_name = secure_filename(file.filename)
             path = os.path.join(os.path.abspath(os.path.dirname(__file__)),app.config['UPLOAD_FOLDER'], secure_name)
             file.save(path)
-            photo = Photo(file_name=secure_name, user_id=current_user.id)
+            photo = Photo(file_name=secure_name, user_id=current_user.id, subtitle=photo_form.subtitle.data)
             database.session.add(photo)
             database.session.commit()
         return render_template('profile.html', user=current_user, form=photo_form)

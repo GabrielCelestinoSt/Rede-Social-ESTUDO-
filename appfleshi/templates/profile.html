@@ -5,25 +5,242 @@
 {% endblock %}
 
 {% block body %}
-    <body>
     {% include "navbar.html" %}
-        <h1>Perfil do usuário: {{ user.username }}</h1>
+
+    <style>
+        .card-photo {
+            position: relative;
+            width: 340px;
+            height: 340px;
+            overflow: hidden;
+            border-radius: 8px;
+            margin: 10px;
+        }
+
+        .card-photo img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .photo-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.6);
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            padding: 20px;
+            box-sizing: border-box;
+            text-align: center;
+            z-index: 10;
+        }
+
+        .card-photo:hover .photo-overlay {
+            opacity: 1;
+            cursor: pointer;
+        }
+
+        .subtitle-text {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            font-size: 1.1rem;
+            line-height: 1.4;
+        }
+
+        .feed-container {
+            display: flex;
+            width: 100%;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-top: 30px;
+            gap: 15px;
+        }
+
+        .profile-header {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            margin: 20px 20px;
+        }
+
+        .form-container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            width: 100%;
+            max-width: 500px;
+        }
+
+        .upload-box {
+            background-color: #f0f2f5;
+            border: 2px dashed #dce2e8;
+            border-radius: 20px;
+            width: 100%;
+            height: 200px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            cursor: pointer;
+            transition: background 0.2s;
+            margin-bottom: 15px;
+            overflow: hidden;
+        }
+
+        .upload-box:hover {
+            background-color: #e4e6eb;
+        }
+
+        .upload-box input[type="file"] {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            opacity: 0;
+            cursor: pointer;
+            z-index: 5;
+        }
+
+        .upload-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: #65676b;
+            transition: opacity 0.2s;
+        }
+
+        .upload-text {
+            font-weight: bold;
+            font-size: 1.5rem;
+            color: #9faebd;
+            margin-top: 10px;
+        }
+
+        #image-preview {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: none;
+            z-index: 1;
+        }
+
+        .custom-input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            box-sizing: border-box;
+            font-size: 1rem;
+            margin-bottom: 15px;
+            outline: none;
+        }
+
+        .custom-input:focus {
+            border-color: #1877f2;
+        }
+
+        .btn-publish {
+            width: 100%;
+            background-color: #1877f2;
+            color: white;
+            border: none;
+            border-radius: 25px;
+            padding: 12px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .btn-publish:hover {
+            background-color: #166fe5;
+        }
+    </style>
+
+    <div class="profile-header">
+        <h1 style="margin-bottom: 30px;">Perfil de {{ user.username }}</h1>
 
         {% if form %}
-            <form method="post" enctype="multipart/form-data">
-                {{ form.csrf_token }}
+            <div class="form-container">
+                <form method="post" enctype="multipart/form-data">
+                    {{ form.csrf_token }}
 
-                {{ form.photo() }}
-                {{ form.submit() }}
-            </form>
+                    <div class="upload-box">
+                        {{ form.photo(class="file-input", id="file-input") }}
+
+                        <div class="upload-content" id="placeholder-content">
+                            <span class="upload-text">adicionar foto</span>
+                        </div>
+
+                        <img id="image-preview" src="" alt="Prévia da imagem">
+                    </div>
+
+                    <div style="margin-bottom: 10px;">
+                        {{ form.subtitle(class="custom-input", rows="1", placeholder="Escreva uma legenda...") }}
+                    </div>
+
+                    <button type="submit" class="btn-publish">Publicar</button>
+
+                </form>
+            </div>
         {% endif %}
 
-        <a href="{{ url_for('logout') }}">Sair</a>
+    </div>
 
-
-
+    <div class="feed-container">
         {% for photo in user.photos %}
-            <img src="{{ url_for('static', filename='posts_photos/'~photo.file_name) }}" alt="~photo.file_name">
+            <div class="card-photo">
+                <img src="{{ url_for('static', filename='posts_photos/'~photo.file_name) }}" alt="Foto de {{ user.username }}">
+
+                {% if photo.subtitle %}
+                    <div class="photo-overlay">
+                        <p class="subtitle-text">
+                            {{ photo.subtitle }}
+                        </p>
+                    </div>
+                {% endif %}
+            </div>
         {% endfor %}
-    </body>
+    </div>
+
+    <script>
+
+        const fileInput = document.getElementById('file-input');
+        const imgPreview = document.getElementById('image-preview');
+        const placeholder = document.getElementById('placeholder-content');
+
+        fileInput.addEventListener('change', function(event) {
+            const file = event.target.files[0];
+
+            if (file) {
+                const reader = new FileReader();
+
+
+                reader.onload = function(e) {
+                    imgPreview.src = e.target.result;
+                    imgPreview.style.display = 'block';
+                    placeholder.style.display = 'none';
+                }
+
+                reader.readAsDataURL(file);
+            } else {
+                imgPreview.style.display = 'none';
+                placeholder.style.display = 'flex';
+            }
+        });
+    </script>
+
 {% endblock %}
