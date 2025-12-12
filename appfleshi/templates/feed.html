@@ -77,14 +77,16 @@
 
                     <img src="{{ url_for('static', filename='posts_photos/'~photo.file_name) }}" alt="{{ photo.file_name }}">
 
-                    {% if photo.subtitle %}
+
                         <div class="photo-overlay">
-                            <p class="subtitle-text">
-                                <strong>{{ photo.user.username }}:</strong><br>
-                                {{ photo.subtitle }}
-                            </p>
+                            {% if photo.subtitle %}
+                                <p class="subtitle-text">
+                                    <strong>{{ photo.user.username }}:</strong><br>
+                                    {{ photo.subtitle }}
+                                </p>
+                            {% endif %}
                         </div>
-                    {% endif %}
+
 
                 </a>
             </div>
